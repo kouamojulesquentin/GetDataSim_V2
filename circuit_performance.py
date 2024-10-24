@@ -138,3 +138,55 @@ def label_data(dataset, output_name):
     fail_ratio = labeled_data['label'].value_counts(normalize=True)['Fail']
     print(f"Pass ratio: {pass_ratio:.2f}")
     print(f"Fail ratio: {fail_ratio:.2f}")
+
+
+
+
+def label_data_test(dataset, params_name, output_name):
+    """
+    Label the data based on the performance metrics of the circuit.
+    
+    Args:
+        dataset (pd.DataFrame): A DataFrame containing the component values for each circuit.
+        params_name (list): A list of strings containing the column names for the component values in the dataset.
+    """
+    # Read the dataset
+    dataset = pd.read_csv(dataset, header=0, index_col=0)
+    labeled_data = pd.DataFrame()
+
+    component_1 = 89.0
+    component_2 = 15e-3
+    component_3 = 95e-6
+    component_1_tolerance = 0.05
+    component_2_tolerance = 0.10
+    component_3_tolerance = 0.20
+
+    # Calculate min and max values for each component based on tolerance
+    component_1_min = component_1 - (component_1 * component_1_tolerance)
+    component_1_max = component_1 + (component_1 * component_1_tolerance)
+    component_2_min = component_2 - (component_2 * component_2_tolerance)
+    component_2_max = component_2 + (component_2 * component_2_tolerance)
+    component_3_min = component_3 - (component_3 * component_3_tolerance)
+    component_3_max = component_3 + (component_3 * component_3_tolerance)
+
+    def label_row(row):
+        # Label each row as 'Pass' or 'Fail' 
+        if (component_1_min <= row[params_name[0]] <= component_1_max and 
+            component_2_min <= row[params_name[1]] <= component_2_max and 
+            component_3_min <= row[params_name[2]] <= component_3_max):
+            return 'Pass'
+        else:
+            return 'Fail'
+
+    # Apply labeling function to each row
+    labeled_data['label'] = dataset.apply(label_row, axis=1)
+
+    # Combine the original dataset with the labels
+    final = pd.concat([dataset[output_name], labeled_data], axis=1)
+    final.to_csv('datas/final_database_test.csv')
+
+    # Calculate and print pass/fail ratios
+    pass_ratio = labeled_data['label'].value_counts(normalize=True).get('Pass', 0)
+    fail_ratio = labeled_data['label'].value_counts(normalize=True).get('Fail', 0)
+    print(f"Pass test ratio: {pass_ratio:.2f}")
+    print(f"Fail test ratio: {fail_ratio:.2f}")

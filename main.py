@@ -23,8 +23,9 @@ import random
 from generate_ocn_file import generate_ocn_file
 from transform_data import to_csv, clean_data_1, transpose_csv, clean_data_2, transform_data, apply_value_conversion
 from execute_scripts import execute_ocean
-from circuit_performance import compute_performance, compute_tolerance_range,label_data
+from circuit_performance import compute_performance, compute_tolerance_range,label_data, label_data_test
 from training import training
+from deployment import deployment
 
 def main():
     """ Main function to collect data from simulations. """
@@ -65,6 +66,17 @@ def main():
     cleaned_datas_input = f"{current_dir}/datas/cleaned_datas_input.csv"
     database_input = f"{current_dir}/datas/database_input.csv"
     final_database = f"{current_dir}/datas/final_database.csv"
+
+
+
+    simulation_result_output_test = f"{current_dir}/datas/{outputs_name[1]}_test.txt"
+    simulation_result_input_test = f"{current_dir}/datas/{outputs_name[0]}_test.txt"
+    cleaned_datas_output_test = f"{current_dir}/datas/cleaned_datas_output_test.csv"
+    database_output_test = f"{current_dir}/datas/database_output_test.csv"
+    cleaned_datas_input_test = f"{current_dir}/datas/cleaned_datas_input_test.csv"
+    database_input_test = f"{current_dir}/datas/database_input_test.csv"
+    final_database_test = f"{current_dir}/datas/final_database_test.csv"
+    model_path_time='best_model_time.joblib'
     
     # Generate .ocn file
     #generate_ocn_file(data_path, design, num_params, param_names, param_values, outputs_name, number_of_simulations, param_tolerance, current_dir)
@@ -89,6 +101,15 @@ def main():
     apply_value_conversion(database_input, outputs_name[0])
 
 
+   # Process the simulation results Output
+    to_csv(simulation_result_output_test, cleaned_datas_output_test, num_params, param_names)
+    clean_data_1(cleaned_datas_output_test)
+    transpose_csv(cleaned_datas_output_test, database_output_test)
+    clean_data_2(database_output_test)
+    transform_data(database_output_test,param_names, outputs_name[1])
+    apply_value_conversion(database_output_test, outputs_name[1])
+
+
     #compute performance
     compute_performance(database_output,param_names)
 
@@ -97,9 +118,17 @@ def main():
 
     # Label the data
     label_data(final_database,outputs_name[1])
+    label_data_test(database_output_test,param_names,outputs_name[1])
 
     # train the model
     training(final_database)
+
+  
+    # Make predictions
+    predictions, probabilities = deployment(final_database_test, model_path_time)
+    print(predictions)
+    print(probabilities)
+    
 
 
 if __name__ == "__main__":
