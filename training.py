@@ -81,10 +81,14 @@ def training(dataset):
     # Run grid search on time-domain data
     print("Running grid search on time-domain data...")
     best_score_time, accuracy_time, model_time_filename = run_grid_search(X_train_time, y_train_time, X_test_time, y_test_time, domain='time')
+    print(f"Best score for time-domain data: {best_score_time}")
+
+
 
     # Run grid search on frequency-domain data
     print("Running grid search on frequency-domain data...")
     best_score_freq, accuracy_freq, model_freq_filename = run_grid_search(X_train_freq, y_train_freq, X_test_freq, y_test_freq, domain='frequency')
+    print(f"Best score for frequency-domain data: {best_score_freq}")
 
     # Compare and save the final best model
     if accuracy_time > accuracy_freq:

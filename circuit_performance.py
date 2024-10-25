@@ -178,6 +178,14 @@ def label_data_test(dataset, params_name, output_name):
         else:
             return 'Fail'
 
+
+    # Add the percentage difference column with the param name
+    labeled_data['percentage_difference_{0}'.format(params_name[0])] = dataset.apply(lambda row: (row[params_name[0]] - component_1) / component_1 * 100, axis=1)
+    labeled_data['percentage_difference_{0}'.format(params_name[1])] = dataset.apply(lambda row: (row[params_name[1]] - component_2) / component_2 * 100, axis=1)
+    labeled_data['percentage_difference_{0}'.format(params_name[2])] = dataset.apply(lambda row: (row[params_name[2]] - component_3) / component_3 * 100, axis=1)
+
+
+
     # Apply labeling function to each row
     labeled_data['label'] = dataset.apply(label_row, axis=1)
 

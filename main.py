@@ -32,31 +32,31 @@ def main():
     random.seed(time.time())
     
     # Variable Declaration
-    # design_dir = input("Enter the absolute path of your Lib: ")
-    # design = []
-    # print("Enter the names for the design (e.g., Lib_name cell_name schematic):")
-    # for _ in range(3):
-    #     design.append(input())
+    design_dir = input("Enter the absolute path of your Lib: ")
+    design = []
+    print("Enter the names for the design (e.g., Lib_name cell_name schematic):")
+    for _ in range(3):
+        design.append(input())
     outputs_name = []
     print("Enter the input and output to observe in this order (e.g., V_in V_out):")
     for _ in range(2):
         outputs_name.append(input())
     num_params = int(input("Enter the number of parameters: "))
-    # if num_params <= 0 or num_params > 50:
-    #     print("The number of parameters must be between 1 and 50.")
-    #     return
+    if num_params <= 0 or num_params > 50:
+        print("The number of parameters must be between 1 and 50.")
+        return
     param_names = []
-    # param_values = []
-    # param_tolerance = []
+    param_values = []
+    param_tolerance = []
     for i in range(num_params):
         param_name = input(f"Enter the name of parameter {i + 1}: ")
-    #     param_value = float(input(f"Enter the value for parameter {param_name}: "))
-    #     param_tol = float(input(f"Enter the tolerance (as percentage) for parameter {param_name}: "))
+        param_value = float(input(f"Enter the value for parameter {param_name}: "))
+        param_tol = float(input(f"Enter the tolerance (as percentage) for parameter {param_name}: "))
         param_names.append(param_name)
-    #     param_values.append(param_value)
-    #     param_tolerance.append(param_tol)
-    # number_of_simulations = int(input("Enter the number of simulations: "))
-    # data_path = "datas/collect_data.ocn"
+        param_values.append(param_value)
+        param_tolerance.append(param_tol)
+    number_of_simulations = int(input("Enter the number of simulations: "))
+    data_path = "datas/collect_data.ocn"
     current_dir = os.getcwd()
    
     simulation_result_output = f"{current_dir}/datas/{outputs_name[1]}.txt"
@@ -78,8 +78,8 @@ def main():
     final_database_test = f"{current_dir}/datas/final_database_test.csv"
     model_path_time='best_model_time.joblib'
     
-    # Generate .ocn file
-    #generate_ocn_file(data_path, design, num_params, param_names, param_values, outputs_name, number_of_simulations, param_tolerance, current_dir)
+    #Generate .ocn file
+    generate_ocn_file(data_path, design, num_params, param_names, param_values, outputs_name, number_of_simulations, param_tolerance, current_dir)
     
     # Execute the ocean script and wait for it to finish
     #execute_ocean(data_path, design_dir, current_dir)
@@ -126,8 +126,6 @@ def main():
   
     # Make predictions
     predictions, probabilities = deployment(final_database_test, model_path_time)
-    print(predictions)
-    print(probabilities)
     
 
 

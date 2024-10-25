@@ -5,30 +5,31 @@ import joblib
 
 def deployment(new_data_path, model_path):
     """
-    Fonction pour déployer le modèle sur de nouvelles données
+    Function to deploy the model on new data
     
     Parameters:
     -----------
     new_data_path : str
-        Chemin vers le fichier CSV contenant les nouvelles données
+        Path to the CSV file containing the new data
     model_path : str
-        Chemin vers le modèle sauvegardé (.joblib)
+        Path to the saved model (.joblib)
     
     Returns:
     --------
     predictions : array
-        Les prédictions pour les nouvelles données
+        Predictions for the new data
     probabilities : array
-        Les probabilités associées à chaque prédiction (si disponible)
+        Probabilities associated with each prediction (if available)
     """
     
-    # Charger les nouvelles données
+    # Load the new data
     new_data = pd.read_csv(new_data_path, header=0, index_col=0)
+    new_label = new_data['label']
     
-    # Charger le modèle
+    # Load the model
     model = joblib.load(model_path)
     
-    # Vérifier si c'est un modèle temporel ou fréquentiel
+    # Check if it is a temporal or frequency model
     is_frequency_model = 'frequency' in model_path
     
     def time_to_frequency(v_out_str):
@@ -40,7 +41,10 @@ def deployment(new_data_path, model_path):
     
     def convert_v_out(value):
         suffixes = {'a': 1e-18, 'z': 1e-21, 'f': 1e-15, 'p': 1e-12, 'n': 1e-9, 'u': 1e-6, 'm': 1e-3, 'c': 1e-2, 'd': 1e-1, '': 1, 'da': 1e1, 'h': 1e2, 'k': 1e3, 'M': 1e6, 'G': 1e9, 'T': 1e12, 'P': 1e15, 'E': 1e18}
-        parts = value.split(',')
+        if isinstance(value, str):
+            parts = value.split(',')
+        else:
+            return value
         converted_parts = []
         for part in parts:
             if part[-1].isalpha():
@@ -64,11 +68,9 @@ def deployment(new_data_path, model_path):
     
     new_data = apply_value_conversion(new_data, 'V_out')
 
-
-
-    # Préparer les données selon le type de modèle
+    # Prepare the data according to the model type
     if is_frequency_model:
-        # Transformer les données en domaine fréquentiel
+        # Transform the data into the frequency domain
         X_new = new_data['V_out'].apply(time_to_frequency)
         X_new = X_new.apply(lambda x: list(x)).tolist()
         X_new = pd.DataFrame(X_new)
@@ -77,27 +79,34 @@ def deployment(new_data_path, model_path):
         X_new = pd.DataFrame(X_new)
         X_new = new_data['V_out'].apply(lambda x: list(map(float, x.split(',')))).tolist()
     
-    # Faire les prédictions
+    # Make predictions
     predictions = model.predict(X_new)
     
-    # Obtenir les probabilités si le modèle le permet
+    # Get probabilities if the model allows it
     try:
         probabilities = model.predict_proba(X_new)
     except AttributeError:
         probabilities = None
-        print("Note: Ce modèle ne fournit pas de probabilités pour les prédictions")
+        print("Note: This model does not provide probabilities for predictions")
     
-    # Créer un DataFrame avec les résultats
+    # Create a DataFrame with the results
     results = pd.DataFrame({
         'prediction': predictions
     })
-    
+
     if probabilities is not None:
         for i in range(probabilities.shape[1]):
             results[f'probability_class_{i}'] = probabilities[:, i]
     
-    # Sauvegarder les résultats
+    # Add last column to results
+    
+    results['reel_label'] = new_label
+    # Add performance_difference_* to results if it differs from 0
+    for col in new_data.columns:
+        if col.startswith('percentage_difference_') and new_data[col].sum() != 0:
+            results[col] = new_data[col]
+    # Save the results
     results.to_csv('predictions_results.csv')
-    print("Les prédictions ont été sauvegardées dans 'predictions_results.csv'")
+    print("Predictions have been saved in 'predictions_results.csv'")
     
     return predictions, probabilities
